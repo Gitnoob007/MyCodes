@@ -20,6 +20,11 @@ variable "gcp_project" {
   description = "Project to use for this config"
 }
 
+variable "rolesList" {
+type =list(string)
+default = ["roles/iam.serviceAccountAdmin","roles/storage.admin"]
+}
+
 provider "google" {
   region  = var.gcp_region
   project = var.gcp_project
@@ -42,8 +47,8 @@ resource "google_compute_instance" "default" {
   }
 
 
-# Install Flask
-  metadata_startup_script = "sudo apt-get update; sudo apt-get install -yq build-essential python-pip rsync; pip install flask"
+# Install setup files
+  metadata_startup_script = "sudo apt-get update;sudo apt-get install git-core;sudo apt-get install apache2 php7.0;sudo apt install python3-pip;sudo pip install google-cloud;sudo pip install google-cloud-pubsub;python3 -m pip install --upgrade pip;pip install apache-beam;pip install apitools;pip install api-base;pip install --upgrade google-cloud-storage"
   
   network_interface {
     network = "default"
@@ -54,8 +59,8 @@ resource "google_compute_instance" "default" {
   }
 }
 
-resource "google_storage_bucket" "majestic-lodge-342902-finfo-trial" {
-  name          = "majestic-lodge-342902-finfo-trial"
+resource "google_storage_bucket" "private-equity" {
+  name          = "private-equity"
   location      = "US"
   force_destroy = true
     }
@@ -65,7 +70,7 @@ module "pubsub" {
   version = "3.2.0"
 
   topic      = "my_topic"
-  project_id = "majestic-lodge-342902"
+  project_id = var.gcp_project
 
 pull_subscriptions = [
     {
@@ -81,3 +86,18 @@ pull_subscriptions = [
     }
   ]
 }
+
+resource "google_service_account" "service_account" {
+  account_id   = "finfo-sa"
+  display_name = "FINFO Service Account"
+}
+
+resource "google_project_iam_binding" "sa_account_iam" {
+project = var.gcp_project
+count = length(var.rolesList)
+role =  var.rolesList[count.index]
+members = [
+  "serviceAccount:${google_service_account.service_account.email}"
+]
+}
+
