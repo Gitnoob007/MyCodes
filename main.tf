@@ -31,13 +31,12 @@ provider "google" {
 }
 
 # Use `gcloud` to enable:
-# compute engine, pub/sub, datafloe, cloud build, cloud scheduler, cloud resource manager.
+# compute engine, pub/sub, dataflow, cloud build, cloud scheduler, cloud resource manager.
 
 resource "null_resource" "enable_service_usage_api" {
   provisioner "local-exec" {
     command = "gcloud services enable computeengine.googleapis.com pubsub.googleapis.com cloudbuild.googleapis.com cloudscheduler.googleapis.com cloudresourcemanager.googleapis.com --project ${var.gcp_project}"
-  }
-  
+  }  
 }
   
   # Create a single Compute Engine instance
@@ -67,7 +66,7 @@ resource "google_compute_instance" "default" {
       # Include this section to give the VM an external IP address
     }
   }
-  [depends_on = [null_resource.enable_service_usage_api]]
+depends_on = [null_resource.enable_service_usage_api]
 }
 
 resource "google_storage_bucket" "private-equity" {
@@ -96,7 +95,7 @@ pull_subscriptions = [
      
     }
   ]
-  [depends_on = [null_resource.enable_service_usage_api]]
+depends_on = [null_resource.enable_service_usage_api]
 }
 
 resource "google_service_account" "service_account" {
@@ -111,6 +110,6 @@ role =  var.rolesList[count.index]
 members = [
   "serviceAccount:${google_service_account.service_account.email}"
 ]
-  [depends_on = [null_resource.enable_service_usage_api]]
+depends_on = [google_service_account.service_account]
 }
 
