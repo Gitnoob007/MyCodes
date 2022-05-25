@@ -101,3 +101,13 @@ members = [
 ]
 }
 
+# Use `gcloud` to enable:
+# compute engine, pub/sub, datafloe, cloud build, cloud scheduler, cloud resource manager.
+
+resource "null_resource" "enable_service_usage_api" {
+  provisioner "local-exec" {
+    command = "gcloud services enable computeengine.googleapis.com pubsub.googleapis.com cloudbuild.googleapis.com cloudscheduler.googleapis.com cloudresourcemanager.googleapis.com --project ${var.gcp_project}"
+  }
+  
+  depends_on = [google_project.project]
+}
